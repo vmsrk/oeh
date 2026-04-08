@@ -3,6 +3,34 @@
 Email Triage Environment – Baseline Inference Script
 Robust exception handling for missing modules, env vars, and runtime errors.
 """
+import sys
+import subprocess
+import importlib
+
+def ensure_package(package_name, pip_name=None):
+    """Try to import a package; if missing, install it using pip."""
+    if pip_name is None:
+        pip_name = package_name
+    try:
+        importlib.import_module(package_name)
+    except ImportError:
+        print(f"[INFO] Package '{package_name}' not found. Installing...", file=sys.stderr)
+        subprocess.check_call([sys.executable, "-m", "pip", "install", pip_name])
+        # After installation, try importing again
+        importlib.import_module(package_name)
+
+# List all packages your script needs
+required_packages = [
+    ("openai", "openai>=1.6.0"),
+    ("pydantic", "pydantic>=2.5.0"),
+    ("fastapi", "fastapi>=0.104.0"),      # not strictly needed for inference, but safe
+    ("uvicorn", "uvicorn[standard]>=0.24.0"),
+    ("dotenv", "python-dotenv>=1.0.0"),   # note: import name is 'dotenv', pip name 'python-dotenv'
+    ("requests", "requests>=2.31.0"),
+]
+
+for mod_name, pip_spec in required_packages:
+    ensure_package(mod_name, pip_spec)
 
 import asyncio
 import os
