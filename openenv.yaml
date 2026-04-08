@@ -1,0 +1,24 @@
+name: email_triage_env
+version: 1.0.0
+description: Customer support email triage environment
+authors:
+  - Hackathon Participant
+tags:
+  - real-world
+  - customer-support
+observation_space:
+  email_text: string
+  sender: string
+  subject: string
+  available_info_types: list
+  step_count: integer
+  max_steps: integer
+action_space:
+  request_info: optional string
+  submit_priority: optional string
+  submit_action: optional string
+reward_range: [-inf, 1.0]
+tasks:
+  easy: { difficulty: easy, description: "Unsubscribe request – archive" }
+  medium: { difficulty: medium, description: "Defective product – high priority reply" }
+  hard: { difficulty: hard, description: "Phishing alert – flag for review" }

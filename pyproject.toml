@@ -1,0 +1,32 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "email_triage_env"
+version = "1.0.0"
+description = "Customer support email triage environment for OpenEnv"
+authors = [{ name = "Hackathon Participant", email = "participant@example.com" }]
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "pydantic>=2.5.0",
+    "fastapi>=0.104.0",
+    "uvicorn[standard]>=0.24.0",
+    "openai>=1.6.0",
+    "openenv-core>=0.1.0",
+    "requests>=2.31.0",
+    "python-dotenv>=1.0.0",
+]
+
+[project.scripts]
+server = "server.app:main"          # ← MUST be exactly "server"
+
+[project.entry-points."openenv.environments"]
+email_triage = "email_triage_env:EmailTriageEnv"
+
+[tool.uv]
+dev-dependencies = []
+
+[tool.setuptools.packages.find]
+include = ["email_triage_env*", "server*"]
