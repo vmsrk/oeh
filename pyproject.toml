@@ -1,13 +1,13 @@
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "email_triage_env"
 version = "1.0.0"
 description = "Customer support email triage environment for OpenEnv"
 authors = [{ name = "Hackathon Participant", email = "participant@example.com" }]
-readme = "README.md"
+#readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
     "pydantic>=2.5.0",
