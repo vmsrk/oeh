@@ -1,18 +1,40 @@
 #!/usr/bin/env python3
+"""
+Email Triage Environment – Baseline Inference Script
+Robust exception handling for missing modules, env vars, and runtime errors.
+"""
+
 import asyncio
 import os
+import sys
 import json
 import textwrap
 from typing import List, Optional
-from openai import OpenAI
 
-from email_triage_env import EmailTriageEnv
-from email_triage_env.models import Action, InfoType, Priority, ActionType
+# ==================== GRACEFUL IMPORT HANDLING ====================
+try:
+    from openai import OpenAI
+except ImportError as e:
+    print(f"[ERROR] Failed to import 'openai': {e}", file=sys.stderr)
+    print("Please install required packages: pip install -r requirements.txt", file=sys.stderr)
+    sys.exit(1)
 
-# ==================== ENVIRONMENT VARIABLES ====================
+try:
+    from email_triage_env import EmailTriageEnv
+    from email_triage_env.models import Action, InfoType, Priority, ActionType
+except ImportError as e:
+    print(f"[ERROR] Failed to import 'email_triage_env' package: {e}", file=sys.stderr)
+    print("Make sure the package is installed (pip install -e .) or the module is in PYTHONPATH.", file=sys.stderr)
+    sys.exit(1)
+
+# ==================== ENVIRONMENT VARIABLES (with fallback & validation) ====================
 API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:11434/v1")
 MODEL_NAME = os.getenv("MODEL_NAME", "llama3.2")
-API_KEY = os.getenv("OPENAI_API_KEY") or os.getenv("HF_TOKEN") or "ollama"
+API_KEY = os.getenv("OPENAI_API_KEY") or os.getenv("HF_TOKEN")
+
+if not API_KEY:
+    print("[WARNING] Neither OPENAI_API_KEY nor HF_TOKEN is set. Using dummy key 'ollama' for local testing.", file=sys.stderr)
+    API_KEY = "ollama"  # for Ollama local testing
 
 TASK_NAMES = ["easy", "medium", "hard"]
 MAX_STEPS = 10
@@ -96,19 +118,16 @@ async def get_model_action(client, task_id, email_text, sender, subject, step, h
     - Avoid repeating tools
     - Decide when to stop
     """
+    # Hard fallback if too many steps or info requests
     if step >= 2 and len(info_requests_made) >= 1:
-        # 50% chance to force decision
         if task_id == "easy":
             return fallback_submission(task_id)
     if len(info_requests_made) >= 2:
         return fallback_submission(task_id)
-
-    # 🚫 Hard stop (safety)
     if step >= 5:
         print(f"[DEBUG] Step {step}: max step reached → fallback", flush=True)
         return fallback_submission(task_id)
 
-    # 🧠 Build reasoning context
     hist_str = "\n".join(history[-3:]) if history else "None"
 
     user_prompt = f"""
@@ -163,40 +182,23 @@ async def get_model_action(client, task_id, email_text, sender, subject, step, h
         # ==================== HANDLE INFO REQUEST ====================
         if "request_info" in data:
             info_type = data["request_info"]
-
             valid_types = ["sender_history", "product_details", "previous_tickets"]
 
-            # Normalize
-            valid_types = ["sender_history", "product_details", "previous_tickets"]
+            if info_type not in valid_types:
+                info_type = "sender_history"
 
-            # Normalize first
-            if "request_info" in data:
-                valid_types = ["sender_history", "product_details", "previous_tickets"]
+            # Block duplicate request
+            if info_type in info_requests_made:
+                print(f"[DEBUG] Blocking duplicate request: {info_type}", flush=True)
+                remaining = [x for x in valid_types if x not in info_requests_made]
+                if remaining:
+                    return Action(request_info=remaining[0])
+                return fallback_submission(task_id)
 
-                info_type = data["request_info"]
+            if len(info_requests_made) >= 2:
+                return fallback_submission(task_id)
 
-                # Normalize
-                if info_type not in valid_types:
-                    info_type = "sender_history"
-
-                # 🚫 HARD BLOCK duplicate (EARLY RETURN ONLY)
-                if info_type in info_requests_made:
-                    print(f"[DEBUG] Blocking duplicate request: {info_type}", flush=True)
-
-                    remaining = [x for x in valid_types if x not in info_requests_made]
-
-                    if remaining:
-                        return Action(request_info=remaining[0])
-
-                    # Nothing left → force submission
-                    return fallback_submission(task_id)
-
-                # 🚫 Limit max info requests
-                if len(info_requests_made) >= 2:
-                    return fallback_submission(task_id)
-
-                # ✅ ONLY valid return path
-                return Action(request_info=info_type)
+            return Action(request_info=info_type)
 
         # ==================== HANDLE SUBMISSION ====================
         elif "submit_priority" in data and "submit_action" in data:
@@ -229,7 +231,7 @@ async def get_model_action(client, task_id, email_text, sender, subject, step, h
 async def run_episode(env, client, task_id):
     history = []
     rewards = []
-    info_requests_made = []   # track requested info types to avoid repeats (though env already penalises)
+    info_requests_made = []
 
     obs = await env.reset(task_id)
     step = 1
@@ -240,7 +242,6 @@ async def run_episode(env, client, task_id):
                                         step, history, info_requests_made)
         action_str = action.model_dump_json()
 
-        # Track if this is an info request
         if action.request_info:
             info_requests_made.append(action.request_info)
 
@@ -262,15 +263,35 @@ async def run_episode(env, client, task_id):
         "rewards": rewards
     }
 
-# ==================== MAIN ====================
+# ==================== MAIN WITH TOP-LEVEL EXCEPTION HANDLING ====================
 async def main():
-    client = OpenAI(base_url=API_BASE_URL, api_key=API_KEY)
+    """Main execution with internal error handling."""
+    try:
+        client = OpenAI(base_url=API_BASE_URL, api_key=API_KEY)
+    except Exception as e:
+        print(f"[ERROR] Failed to initialize OpenAI client: {e}", file=sys.stderr)
+        raise
+
     env = EmailTriageEnv()
     for task_id in TASK_NAMES:
         log_start(task=task_id, env="email_triage_env", model=MODEL_NAME)
-        res = await run_episode(env, client, task_id)
-        log_end(success=res["success"], steps=res["steps"], score=res["score"], rewards=res["rewards"])
+        try:
+            res = await run_episode(env, client, task_id)
+            log_end(success=res["success"], steps=res["steps"], score=res["score"], rewards=res["rewards"])
+        except Exception as e:
+            print(f"[ERROR] Episode failed for task {task_id}: {e}", file=sys.stderr)
+            # Still log an [END] line with failure info
+            log_end(success=False, steps=0, score=0.0, rewards=[])
         print()
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        print("\n[INFO] Interrupted by user", file=sys.stderr)
+        sys.exit(1)
+    except Exception as e:
+        print(f"[FATAL] Unhandled exception: {e}", file=sys.stderr)
+        import traceback
+        traceback.print_exc(file=sys.stderr)
+        sys.exit(1)
