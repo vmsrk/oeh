@@ -1,20 +1,26 @@
-from fastapi import FastAPI
+import uvicorn
+import json
+from fastapi import FastAPI, Request
 from pydantic import BaseModel
-from .env import EmailTriageEnv
-from .models import Action
 
-app = FastAPI()
+from email_triage_env import EmailTriageEnv
+from email_triage_env.models import Action
+
+app = FastAPI(title="Email Triage Environment")
 env = EmailTriageEnv()
-
-class ResetRequest(BaseModel):
-    task_id: str = "easy"
 
 class StepRequest(BaseModel):
     action: Action
 
 @app.post("/reset")
-async def reset_endpoint(req: ResetRequest):
-    obs = await env.reset(req.task_id)
+async def reset_endpoint(request: Request):
+    """Accepts empty body (null) or JSON body with optional task_id."""
+    try:
+        body = await request.json()
+    except json.JSONDecodeError:
+        body = {}
+    task_id = body.get("task_id", "easy") if isinstance(body, dict) else "easy"
+    obs = await env.reset(task_id)
     return {"observation": obs.dict()}
 
 @app.post("/step")
@@ -39,3 +45,9 @@ async def health():
 @app.get("/")
 async def root():
     return {"message": "Email Triage Environment running"}
+
+def main():
+    uvicorn.run(app, host="0.0.0.0", port=7860)
+
+if __name__ == "__main__":
+    main()
