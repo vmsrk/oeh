@@ -56,8 +56,8 @@ class EmailTriageEnv:
 
         if self.step_count >= self.max_steps and not self.done:
             self.done = True
-            self.final_score = 0.0
-            reward_value = 0.0
+            self.final_score = 0.01
+            reward_value = 0.01
             info["error"] = "Max steps reached"
 
         return self._get_observation(), Reward(value=reward_value), self.done, info

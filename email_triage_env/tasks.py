@@ -60,6 +60,7 @@ PayPal Security Team""",
     ),
 }
 
+
 def grade_submission(task: Task, chosen_priority: Priority, chosen_action: ActionType,
                      steps_taken: int, requested_info: List[InfoType]) -> float:
     score = 0.0
@@ -72,4 +73,10 @@ def grade_submission(task: Task, chosen_priority: Priority, chosen_action: Actio
     irrelevant = [info for info in requested_info if info not in task.useful_info]
     penalty = min(0.2, len(irrelevant) * 0.05)
     score = max(0.0, min(1.0, score - penalty))
+
+    # Clamp to strictly between 0 and 1
+    if score <= 0.0:
+        score = 0.01
+    if score >= 1.0:
+        score = 0.99
     return score
