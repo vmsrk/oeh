@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CopilotDiffPersistence">
+    <option name="pendingDiffs">
+      <map>
+        <entry key="$PROJECT_DIR$/pyproject.toml">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/pyproject.toml" />
+              <option name="originalContent" value="[build-system]&#10;requires = [&quot;setuptools&gt;=61.0&quot;, &quot;wheel&quot;]&#10;build-backend = &quot;setuptools.build_meta&quot;&#10;&#10;[project]&#10;name = &quot;email_triage_env&quot;&#10;version = &quot;1.0.0&quot;&#10;description = &quot;Customer support email triage environment for OpenEnv&quot;&#10;authors = [{ name = &quot;Hackathon Participant&quot;, email = &quot;participant@example.com&quot; }]&#10;#readme = &quot;README.md&quot;&#10;requires-python = &quot;&gt;=3.9&quot;&#10;dependencies = [&#10;    &quot;pydantic&gt;=2.5.0&quot;,&#10;    &quot;fastapi&gt;=0.104.0&quot;,&#10;    &quot;uvicorn[standard]&gt;=0.24.0&quot;,&#10;    &quot;openai&gt;=1.6.0&quot;,&#10;    &quot;openenv-core&gt;=0.1.0&quot;,&#10;    &quot;requests&gt;=2.31.0&quot;,&#10;    &quot;python-dotenv&gt;=1.0.0&quot;,&#10;]&#10;&#10;[project.scripts]&#10;server = &quot;server.app:main&quot;          # ← MUST be exactly &quot;server&quot;&#10;&#10;[project.entry-points.&quot;openenv.environments&quot;]&#10;email_triage = &quot;email_triage_env:EmailTriageEnv&quot;&#10;&#10;[tool.uv]&#10;dev-dependencies = []&#10;&#10;[tool.setuptools.packages.find]&#10;include = [&quot;email_triage_env*&quot;, &quot;server*&quot;]" />
+              <option name="updatedContent" value="[build-system]&#13;&#10;requires = [&quot;setuptools&gt;=61.0&quot;, &quot;wheel&quot;]&#13;&#10;build-backend = &quot;setuptools.build_meta&quot;&#13;&#10;&#13;&#10;[project]&#13;&#10;name = &quot;email_triage_env&quot;&#13;&#10;version = &quot;1.0.0&quot;&#13;&#10;description = &quot;Customer support email triage environment for OpenEnv&quot;&#13;&#10;authors = [{ name = &quot;Hackathon Participant&quot;, email = &quot;participant@example.com&quot; }]&#13;&#10;#readme = &quot;README.md&quot;&#13;&#10;requires-python = &quot;&gt;=3.9&quot;&#13;&#10;dependencies = [&#13;&#10;    &quot;pydantic&gt;=2.5.0&quot;,&#13;&#10;    &quot;fastapi&gt;=0.104.0&quot;,&#13;&#10;    &quot;uvicorn[standard]&gt;=0.24.0&quot;,&#13;&#10;    &quot;openenv-core&gt;=0.1.0&quot;,&#13;&#10;    &quot;requests&gt;=2.31.0&quot;,&#13;&#10;    &quot;python-dotenv&gt;=1.0.0&quot;,&#13;&#10;]&#13;&#10;&#13;&#10;[project.scripts]&#13;&#10;server = &quot;server.app:main&quot;          # ← MUST be exactly &quot;server&quot;&#13;&#10;&#13;&#10;[project.entry-points.&quot;openenv.environments&quot;]&#13;&#10;email_triage = &quot;email_triage_env:EmailTriageEnv&quot;&#13;&#10;&#13;&#10;[tool.uv]&#13;&#10;dev-dependencies = []&#13;&#10;&#13;&#10;[tool.setuptools.packages.find]&#13;&#10;include = [&quot;email_triage_env*&quot;, &quot;server*&quot;]" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/requirements.txt">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/requirements.txt" />
+              <option name="originalContent" value="fastapi==0.104.1&#10;uvicorn[standard]==0.24.0&#10;pydantic==2.5.0&#10;openai==1.6.1&#10;openenv-core&gt;=0.1.0&#10;requests&gt;=2.31.0&#10;python-dotenv==1.0.0&#10;httpx==0.24.0&#10;uv" />
+              <option name="updatedContent" value="fastapi==0.104.1&#13;&#10;uvicorn[standard]==0.24.0&#13;&#10;pydantic==2.5.0&#13;&#10;openenv-core&gt;=0.1.0&#13;&#10;requests&gt;=2.31.0&#13;&#10;python-dotenv==1.0.0&#13;&#10;httpx==0.24.0" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>

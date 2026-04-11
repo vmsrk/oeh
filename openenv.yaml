@@ -1,24 +1,30 @@
-name: email_triage_env
+name: clinical_triage_env
 version: 1.0.0
-description: Customer support email triage environment
+description: Emergency department triage – assign urgency, order tests, ask questions.
 authors:
-  - Hackathon Participant
+  - Murali Sai Rama Krishna Veligeti
 tags:
   - real-world
-  - customer-support
+  - healthcare
+  - clinical-triage
 observation_space:
-  email_text: string
-  sender: string
-  subject: string
-  available_info_types: list
-  step_count: integer
-  max_steps: integer
+  age: integer
+  heart_rate: integer
+  systolic_bp: integer
+  oxygen_saturation: integer
+  temperature: float
+  pain_level: integer
+  chronic_disease_count: integer
+  previous_er_visits: integer
+  arrival_mode: string
+  chief_complaint: string
+  medical_history: string
 action_space:
-  request_info: optional string
-  submit_priority: optional string
-  submit_action: optional string
-reward_range: [-inf, 1.0]
+  order_test: optional string
+  ask_question: optional string
+  assign_triage: optional integer
+reward_range: [-0.5, 1.0]
 tasks:
-  easy: { difficulty: easy, description: "Unsubscribe request – archive" }
-  medium: { difficulty: medium, description: "Defective product – high priority reply" }
-  hard: { difficulty: hard, description: "Phishing alert – flag for review" }
+  easy: { difficulty: easy, description: "Stable patient with sore throat → triage 3" }
+  medium: { difficulty: medium, description: "COPD exacerbation, hypoxia → triage 1" }
+  hard: { difficulty: hard, description: "Acute MI, shock → triage 0" }

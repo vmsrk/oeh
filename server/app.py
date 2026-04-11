@@ -1,38 +1,26 @@
 import uvicorn
-import json
-from fastapi import FastAPI, Request, Query
+from fastapi import FastAPI, Body
 from pydantic import BaseModel
+from typing import Optional
 
-from email_triage_env import EmailTriageEnv
-from email_triage_env.models import Action
+from clinical_triage_env import ClinicalTriageEnv
+from clinical_triage_env.models import Action
 
-app = FastAPI(title="Email Triage Environment")
-env = EmailTriageEnv()
+app = FastAPI()
+env = ClinicalTriageEnv()
+
+class ResetRequest(BaseModel):
+    task_id: str = "easy"   # default value
 
 class StepRequest(BaseModel):
     action: Action
 
-@app.api_route("/reset", methods=["GET", "POST"])
-async def reset_endpoint(
-    request: Request,
-    task_id: str = Query("easy", description="Task ID for GET requests")
-):
-    """
-    Reset the environment.
-    - GET: use query parameter ?task_id=easy
-    - POST: accept JSON body {"task_id": "easy"} or empty body (defaults to "easy")
-    """
-    if request.method == "GET":
-        # Use query parameter
-        tid = task_id
-    else:
-        # POST: try to read JSON body, default to "easy" if empty or invalid
-        try:
-            body = await request.json()
-            tid = body.get("task_id", "easy") if isinstance(body, dict) else "easy"
-        except (json.JSONDecodeError, TypeError):
-            tid = "easy"
-    obs = await env.reset(tid)
+@app.post("/reset")
+async def reset_endpoint(req: Optional[ResetRequest] = None):
+    # If no body or empty body, use default
+    if req is None:
+        req = ResetRequest()
+    obs = await env.reset(req.task_id)
     return {"observation": obs.dict()}
 
 @app.post("/step")
@@ -53,10 +41,6 @@ async def state_endpoint():
 @app.get("/health")
 async def health():
     return {"status": "ok"}
-
-@app.get("/")
-async def root():
-    return {"message": "Email Triage Environment running"}
 
 def main():
     uvicorn.run(app, host="0.0.0.0", port=7860)
